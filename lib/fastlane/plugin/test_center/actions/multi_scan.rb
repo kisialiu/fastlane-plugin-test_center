@@ -4,6 +4,7 @@ module Fastlane
     require 'shellwords'
     require 'xctest_list'
     require 'plist'
+    require 'fastlane/plugin/merge_junit_report'
 
     class MultiScanAction < Action
       def self.run(params)
@@ -35,6 +36,11 @@ module Fastlane
             try_scan_with_retry(scan_options, params[:try_count])
           end
         end
+        junit_fileextension = File.extname(junit_report_filename(scan_options))
+        MergeJunitReportAction.run(
+          input_files: Dir.glob("#{scan_options[:output_directory]}/*#{junit_fileextension}"),
+          output_file: File.join(scan_options[:output_directory], "final_result#{junit_fileextension}")
+        )
       end
 
       def self.try_scan_with_retry(scan_options, maximum_try_count)
